@@ -1,0 +1,14 @@
+# Python
+*.pyc
+__pycache__
+.pytest_cache
+aoc.egg-info
+.venv
+
+days/**/*.txt
+
+# IDE
+.idea/
+.vscode/
+*.iml/
+out/
