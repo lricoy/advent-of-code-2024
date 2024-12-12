@@ -20,8 +20,6 @@ end = False
 i = len(broad_disk) - 1
 while not end:
     og_value = broad_disk[i]
-    has_space = True
-    # print(broad_disk)
 
     for j in range(i):
         if broad_disk[j] == '.':
