@@ -1,14 +1,21 @@
 from collections import deque
 
-cache = {}
+def calculate_dependencies(current, remaining):
+    if current == 0:
+        return [(1, remaining - 1)]
+    elif len(str(current)) % 2 == 0:
+        s = str(current)
+        left, right = int(s[:len(s)//2]), int(s[len(s)//2:])
+        return [(left, remaining - 1), (right, remaining - 1)]
+    else:
+        return [(current * 2024, remaining - 1)]
 
+def resolve_dependencies(dependencies, results):
+    return sum(results[dep] for dep in dependencies)
 
 def evolve_single_stone_iterative(stone, n):
-    if (stone, n) in cache:
-        return cache[(stone, n)]
-
-    stack = deque([(stone, n)])
     results = {}
+    stack = deque([(stone, n)])
 
     while stack:
         current, remaining = stack.pop()
@@ -20,34 +27,24 @@ def evolve_single_stone_iterative(stone, n):
         if (current, remaining) in results:
             continue
 
-        if current == 0:
-            dep = (1, remaining - 1)
-            if dep in results:
-                results[(current, remaining)] = results[dep]
-            else:
-                stack.extend([(current, remaining), dep])
-        elif len(str(current)) % 2 == 0:
-            s = str(current)
-            mid = len(s) // 2
-            left, right = int(s[:mid]), int(s[mid:])
-            deps = [(left, remaining - 1), (right, remaining - 1)]
-            if all(dep in results for dep in deps):
-                results[(current, remaining)] = sum(results[dep] for dep in deps)
-            else:
-                stack.extend([(current, remaining)] + deps)
-        else:
-            dep = (current * 2024, remaining - 1)
-            if dep in results:
-                results[(current, remaining)] = results[dep]
-            else:
-                stack.extend([(current, remaining), dep])
+        # Calculate dependencies for the current state
+        dependencies = calculate_dependencies(current, remaining)
 
-    cache.update(results)
+        # If all dependencies are resolved, compute the result
+        if all(dep in results for dep in dependencies):
+            results[(current, remaining)] = resolve_dependencies(dependencies, results)
+        else:
+            # Push the current state back into the stack along with unresolved dependencies
+            stack.extend([(current, remaining)] + dependencies)
+
     return results[(stone, n)]
 
+def compute_stone_count(stone_list, iterations):
+    return sum(evolve_single_stone_iterative(stone, iterations) for stone in stone_list)
 
 if __name__ == '__main__':
-    with open('input.txt', 'r') as r:
-        stone_list = list(map(int, r.read().strip().split()))
+    with open('input.txt', 'r') as file:
+        stone_list = list(map(int, file.read().strip().split()))
     iterations = 75
-    print(sum(evolve_single_stone_iterative(stone, iterations) for stone in stone_list))
+    stone_count = compute_stone_count(stone_list, iterations)
+    print(stone_count)
